@@ -1,0 +1,81 @@
+%https://doi.org/10.1016/j.heliyon.2019.e01273
+
+function [x, A, A_star,ThroatLoc] = getNozzle6(leng,Ed,Post_Length,Throat_Radius)
+
+thN = 22;
+thE = 0;
+th1 = linspace(-135,-90, 50);
+th2 = linspace(-90,(thN-90), 50);
+Rt = Throat_Radius;
+A_star =  pi*(Rt)^2;
+xin = 1.5*Rt*cosd(th1);
+xin = xin+abs(xin(1));
+ThroatLoc = xin(end);
+yin = 1.5*Rt*sind(th1)+Rt*1.5+Rt;
+
+th3 = linspace(45,90, 50);
+xinp = 1.5*Rt*cosd(th3)+0.25*xin(1);
+yinp = 1.5*Rt*sind(th3)+yin(1);
+xinp = 1.5*Rt*cosd(th3)+0.25*xin(1)+(xin(1)-xinp(1));
+yinp = 1.5*Rt*sind(th3)+yin(1)-(yinp(1)-yin(1));
+xinp = flip(xinp);
+yinp = flip(yinp);
+
+xin = xin+abs(xinp(1));
+xinp = xinp+abs(xinp(1));
+
+xse = xin(end)+leng;
+xs = linspace(xin(end),xse,50);
+ys = ones(size(xs))*yin(end);
+
+y2 = 0.382*Rt*sind(th2)+0.382*Rt+Rt;
+x2 = 0.382*Rt*cosd(th2);
+x2 = x2+abs(xs(end));
+plot(x2,y2); hold on; plot(xin,yin); plot(xinp,yinp);plot(xs,ys)
+
+Nx = x2(end);
+Ny = y2(end);
+
+Ex = leng+Post_Length;
+Ey = Ed;
+
+
+m1 = tand(thN);
+m2 = tand(thE);
+c1 = Ny-Nx*m1;
+c2 = Ey-m2*Ex;
+Qx = (c2-c1)/(m1-m2);
+Qy = (m1*c2-m2*c1)/(m1-m2);
+
+t = linspace(0,1,300);
+
+xbell = ((1-t).^2.*Nx + 2*(1-t).*t.*Qx + t.^2.*Ex);
+ybell = ((1-t).^2.*Ny + 2*(1-t).*t.*Qy + t.^2.*Ey);
+
+plot(xbell,ybell)
+
+Ar = (pi*Ey^2)/(pi*Rt^2);
+
+axis([-1 Ex 0 Ex]*1e-3)
+
+x = [xinp, xin(2:end), x2(2:end), xbell(2:end)];
+y = [yinp, yin(2:end), y2(2:end), ybell(2:end)];
+A = pi*y.^2;
+
+hold off
+
+%     A = x*0.0;
+%     ThroatLoc = 25e-3;
+%     Ainlet = 4.4e-3^2*pi/4;
+%     Aoutlet = 2.0e-3^2*pi/4;
+%     A1 = (Ainlet-A_star)/((ThroatLoc^2));
+%     A2 = (Aoutlet-A_star)/((max(x)-ThroatLoc)^2);
+%     A(x > ThroatLoc) = A2*(x(x > ThroatLoc)-ThroatLoc).^2 + A_star; 
+%     A(or(x <ThroatLoc,x == ThroatLoc)) = A1*(x(or(x <ThroatLoc,x == ThroatLoc))-ThroatLoc).^2 + A_star;
+%     %debug
+%     figure
+%     plot(x,A)
+%     xlabel('Distance [m]')
+%     ylabel('Area [m^2]')
+    
+end
